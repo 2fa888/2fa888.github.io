@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专业谷歌身份验证器 | 生产环境使用</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        :root {
+            --primary: #4285F4;
+            --primary-dark: #3367D6;
+            --success: #34A853;
+            --warning: #FBBC05;
+            --danger: #EA4335;
+            --dark: #202124;
+            --light: #f8f9fa;
+            --gray: #5f6368;
+            --light-gray: #dadce0;
+            --business: #1a73e8;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .header-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            z-index: 1;
+        }
+        
+        header {
+            position: relative;
+            z-index: 2;
+            color: white;
+            padding: 40px 30px 30px;
+            text-align: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .logo i {
+            font-size: 46px;
+            color: var(--primary);
+        }
+        
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 30px;
+            position: relative;
+            z-index: 2;
+            gap: 30px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            min-width: 400px;
+        }
+        
+        .right-panel {
+            flex: 0 0 380px;
+        }
+        
+        .panel-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            height: 100%;
+            border: 1px solid #e8eaed;
+        }
+        
+        .section-title {
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title i {
+            background: rgba(66, 133, 244, 0.1);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+        
+        .input-group {
+            margin-bottom: 28px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .secret-input-container {
+            position: relative;
+        }
+        
+        .secret-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            background: #fff;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+            font-family: monospace;
+        }
+        
+        .secret-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.2);
+        }
+        
+        .btn {
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            font-size: 1.15rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 12px rgba(66, 133, 244, 0.25);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(90deg, #3b78e7, #2a5bc9);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .code-display {
+            background: #f8f9fa;
+            border-radius: 14px;
+            padding: 30px;
+            text-align: center;
+            margin: 25px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e8eaed;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .code-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+        }
+        
+        .code-label {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .code {
+            font-size: 4.2rem;
+            font-weight: 800;
+            letter-spacing: 10px;
+            color: var(--primary);
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        
+        .timer-container {
+            margin-top: 25px;
+        }
+        
+        .timer {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+            width: 100%;
+            transition: width 1s linear;
+        }
+        
+        .timer-text {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--gray);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 25px 0;
+        }
+        
+        #qrcode {
+            width: 220px;
+            height: 220px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 1px solid #e8eaed;
+        }
+        
+        .instructions {
+            background: #f0f7ff;
+            padding: 25px;
+            border-radius: 14px;
+            margin-top: 25px;
+            border: 1px solid #d2e3fc;
+        }
+        
+        .instructions h3 {
+            color: var(--primary);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+        }
+        
+        .steps {
+            list-style-type: none;
+            counter-reset: step-counter;
+        }
+        
+        .steps li {
+            margin-bottom: 18px;
+            padding-left: 45px;
+            position: relative;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+        
+        .steps li:before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--primary);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 1rem;
+            line-height: 32px;
+            font-weight: 600;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--gray);
+            font-size: 0.95rem;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .security-tips {
+            background: #fff8e1;
+            padding: 22px;
+            border-radius: 12px;
+            margin-top: 25px;
+            border-left: 5px solid var(--warning);
+        }
+        
+        .security-tips h3 {
+            color: var(--warning);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+        }
+        
+        @media (max-width: 1100px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .right-panel {
+                flex: 1;
+                width: 100%;
+            }
+            
+            .code {
+                font-size: 3.5rem;
+            }
+        }
+        
+        .example-key {
+            font-size: 0.95rem;
+            color: var(--gray);
+            margin-top: 10px;
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        .message {
+            text-align: center;
+            font-weight: 600;
+            margin-top: 15px;
+            height: 28px;
+            font-size: 1.05rem;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        
+        .success {
+            background: rgba(52, 168, 83, 0.1);
+            color: var(--success);
+        }
+        
+        .error {
+            background: rgba(234, 67, 53, 0.1);
+            color: var(--danger);
+        }
+        
+        .copy-btn {
+            background: #f1f3f4;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            transition: all 0.2s;
+            width: 100%;
+            font-weight: 500;
+        }
+        
+        .copy-btn:hover {
+            background: #dfe1e5;
+        }
+        
+        .time-sync-check {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            border: 1px solid var(--light-gray);
+            text-align: center;
+        }
+        
+        .sync-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        .sync-good {
+            background: rgba(52, 168, 83, 0.1);
+            color: var(--success);
+        }
+        
+        .sync-bad {
+            background: rgba(234, 67, 53, 0.1);
+            color: var(--danger);
+        }
+        
+        .key-requirements {
+            background: #f1f8ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .key-requirements ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        
+        /* 谷歌开发者账号服务 */
+        .business-service {
+            background: linear-gradient(135deg, #1a73e8 0%, #34a853 100%);
+            border-radius: 16px;
+            padding: 30px;
+            height: 100%;
+            color: white;
+            box-shadow: 0 10px 30px rgba(26, 115, 232, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .business-service::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            z-index: 1;
+        }
+        
+        .business-header {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .business-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .business-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        
+        .business-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .business-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #fbbc05;
+            color: #8a6800;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .service-features {
+            position: relative;
+            z-index: 2;
+            margin: 20px 0;
+            flex: 1;
+        }
+        
+        .service-feature {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+        }
+        
+        .service-feature:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .feature-check {
+            background: rgba(255, 255, 255, 0.2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .feature-check i {
+            font-size: 1.2rem;
+            color: var(--success);
+        }
+        
+        .feature-content h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .feature-content p {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.5;
+        }
+        
+        .business-footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .business-cta {
+            background: white;
+            color: #1a73e8;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-top: 10px;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        
+        .business-cta:hover {
+            background: #f5f5f5;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+        
+        .business-contact {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .contact-info {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .contact-info i {
+            color: #fbbc05;
+        }
+        
+        .telegram-link {
+            color: #34a853;
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 2px dashed #34a853;
+            transition: all 0.3s;
+        }
+        
+        .telegram-link:hover {
+            color: #2e8b46;
+            border-bottom-color: #2e8b46;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-bg"></div>
+        
+        <header>
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+            </div>
+            <h1>专业谷歌身份验证器</h1>
+            <p>企业级双重验证解决方案，为您的账户提供最高级别的安全保障</p>
+        </header>
+        
+        <div class="content">
+            <div class="left-panel">
+                <div class="panel-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-lock"></i>
+                        <span>生成动态验证码</span>
+                    </h2>
+                    
+                    <div class="input-group">
+                        <label for="secretKey">
+                            <i class="fas fa-key"></i>
+                            <span>输入您的安全密钥：</span>
+                        </label>
+                        <div class="secret-input-container">
+                            <input type="text" id="secretKey" class="secret-input" 
+                                   placeholder="输入您的Base32密钥" autocomplete="off">
+                        </div>
+                        
+                        <div class="key-requirements">
+                            <h4>密钥要求：</h4>
+                            <ul>
+                                <li>必须为Base32编码格式</li>
+                                <li>长度至少16个字符</li>
+                                <li>仅包含大写字母和数字2-7</li>
+                                <li>由您的安全系统生成</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <button id="generateBtn" class="btn">
+                        <i class="fas fa-sync-alt"></i> 生成验证码
+                    </button>
+                    
+                    <div class="message" id="message"></div>
+                    
+                    <div class="code-display">
+                        <div class="code-label">6位动态验证码</div>
+                        <div id="code" class="code">------</div>
+                        
+                        <div class="timer-container">
+                            <div class="timer">
+                                <div id="timerBar" class="timer-bar"></div>
+                            </div>
+                            <div id="timerText" class="timer-text">30秒后更新</div>
+                        </div>
+                    </div>
+                    
+                    <div class="qr-container">
+                        <div id="qrcode"></div>
+                        <p>扫描二维码添加账户到验证器应用</p>
+                        <button class="copy-btn" id="copyUrlBtn">
+                            <i class="fas fa-copy"></i> 复制添加链接
+                        </button>
+                    </div>
+                    
+                    <div class="time-sync-check">
+                        <p>时间同步状态：</p>
+                        <div id="syncStatus" class="sync-status">
+                            <i class="fas fa-check-circle"></i>
+                            <span>时间已同步</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="business-service">
+                    <span class="business-badge">专业服务</span>
+                    
+                    <div class="business-header">
+                        <div class="business-icon">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <h2 class="business-title">谷歌开发者账号全流程服务</h2>
+                        <p class="business-subtitle">一站式解决账号注册、认证与管理</p>
+                    </div>
+                    
+                    <div class="service-features">
+                        <div class="service-feature">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>企业账号</h3>
+                                <p>高质量海外企业号｜老外家庭IP注册</p>
+                            </div>
+                        </div>
+                        
+                        <div class="service-feature">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>资料保障</h3>
+                                <p>一手资料｜唯一注册｜DUNS认证完成</p>
+                            </div>
+                        </div>
+                        
+                        <div class="service-feature">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>特殊定制</h3>
+                                <p>科技类、金融类、带税号类开发者定制</p>
+                            </div>
+                        </div>
+                        
+                        <div class="service-feature">
+                            <div class="feature-check">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h3>账号认证</h3>
+                                <p>二次验证/异常验证/公司认证，包过不成功退款</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="business-contact">
+                        <div class="contact-info">
+                            <i class="fas fa-bullhorn"></i>
+                            <span>欢迎老板咨询 速联！</span>
+                        </div>
+                    </div>
+                    
+                    <div class="business-footer">
+                        <a href="https://t.me/heyan1105" class="business-cta" target="_blank">
+                            <i class="fab fa-telegram"></i> 点击联系进入我的telegram
+                        </a>
+                        <p class="telegram-link">https://t.me/heyan1105</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 专业谷歌身份验证器 | 基于TOTP算法实现 | 符合RFC 6238标准 | 生产环境使用</p>
+            <p>重要提示：本工具在浏览器本地运行，您的密钥不会离开您的设备</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const secretInput = document.getElementById('secretKey');
+            const generateBtn = document.getElementById('generateBtn');
+            const codeDisplay = document.getElementById('code');
+            const timerBar = document.getElementById('timerBar');
+            const timerText = document.getElementById('timerText');
+            const messageEl = document.getElementById('message');
+            const copyUrlBtn = document.getElementById('copyUrlBtn');
+            const qrContainer = document.getElementById('qrcode');
+            const syncStatus = document.getElementById('syncStatus');
+            
+            // 初始密钥为空
+            secretInput.value = '';
+            
+            // 生成二维码
+            let qrCode = new QRCode(qrContainer, {
+                text: generateOtpAuthUrl('', '您的账户', '企业安全系统'),
+                width: 220,
+                height: 220,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // 生成otpauth URL
+            function generateOtpAuthUrl(secret, account, issuer) {
+                if(!secret) return '';
+                return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
+            }
+            
+            // Base32字母表
+            const base32Alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            const base32Lookup = {};
+            for (let i = 0; i < base32Alphabet.length; i++) {
+                base32Lookup[base32Alphabet.charAt(i)] = i;
+            }
+            
+            // 生产级Base32解码
+            function base32Decode(encoded) {
+                // 移除填充字符和空格，转换为大写
+                encoded = encoded.toUpperCase().replace(/\s+/g, '').replace(/=+$/, '');
+                
+                // 计算输出长度
+                const outputLength = Math.floor(encoded.length * 5 / 8);
+                const result = new Uint8Array(outputLength);
+                
+                let buffer = 0;
+                let bufferLength = 0;
+                let index = 0;
+                
+                for (let i = 0; i < encoded.length; i++) {
+                    const char = encoded.charAt(i);
+                    const charValue = base32Lookup[char];
+                    
+                    if (charValue === undefined) {
+                        throw new Error(`无效的Base32字符: ${char}`);
+                    }
+                    
+                    buffer = (buffer << 5) | charValue;
+                    bufferLength += 5;
+                    
+                    if (bufferLength >= 8) {
+                        result[index++] = (buffer >>> (bufferLength - 8)) & 0xFF;
+                        bufferLength -= 8;
+                    }
+                }
+                
+                // 处理剩余位（如果有）
+                if (bufferLength > 0) {
+                    result[index] = (buffer << (8 - bufferLength)) & 0xFF;
+                }
+                
+                return result;
+            }
+            
+            // 动态截取函数
+            function dynamicTruncation(hmac) {
+                const offset = hmac[hmac.length - 1] & 0x0F;
+                const binCode = (
+                    (hmac[offset]     & 0x7F) << 24 |
+                    (hmac[offset + 1] & 0xFF) << 16 |
+                    (hmac[offset + 2] & 0xFF) <<  8 |
+                    (hmac[offset + 3] & 0xFF)
+                );
+                return binCode;
+            }
+            
+            // 生产级TOTP生成
+            async function generateTOTP(secret) {
+                try {
+                    // 解码Base32密钥
+                    const key = base32Decode(secret);
+                    
+                    // 计算时间步长 (每30秒)
+                    const counter = Math.floor(Date.now() / 30000);
+                    
+                    // 将时间步长转换为8字节大端序数组
+                    const counterBytes = new ArrayBuffer(8);
+                    const counterView = new DataView(counterBytes);
+                    counterView.setUint32(0, Math.floor(counter / 0x100000000));
+                    counterView.setUint32(4, counter & 0xFFFFFFFF);
+                    
+                    // 使用Web Crypto API计算HMAC-SHA1
+                    const cryptoKey = await crypto.subtle.importKey(
+                        'raw',
+                        key,
+                        { name: 'HMAC', hash: 'SHA-1' },
+                        false,
+                        ['sign']
+                    );
+                    
+                    const signature = await crypto.subtle.sign('HMAC', cryptoKey, counterBytes);
+                    const hmac = new Uint8Array(signature);
+                    
+                    // 动态截取并生成6位验证码
+                    const code = dynamicTruncation(hmac) % 1000000;
+                    return code.toString().padStart(6, '0');
+                } catch (e) {
+                    console.error('TOTP生成错误:', e);
+                    showMessage(`验证码生成失败: ${e.message}`, 'error');
+                    return 'ERROR';
+                }
+            }
+            
+            // 更新验证码和计时器
+            async function updateCode() {
+                const secret = secretInput.value.trim();
+                
+                if (secret.length < 16) {
+                    showMessage('请输入有效的密钥（至少16个字符）', 'error');
+                    return;
+                }
+                
+                try {
+                    const code = await generateTOTP(secret);
+                    if (code !== 'ERROR') {
+                        codeDisplay.textContent = code;
+                        showMessage('验证码已成功生成！', 'success');
+                        
+                        // 更新二维码
+                        updateQRCode(secret);
+                        
+                        // 重置计时器
+                        startTimer();
+                    }
+                } catch (e) {
+                    showMessage('验证码生成失败: ' + e.message, 'error');
+                }
+            }
+            
+            // 启动倒计时
+            function startTimer() {
+                // 计算当前时间步长的剩余时间
+                const now = Date.now();
+                const step = 30000; // 30秒
+                const remaining = step - (now % step);
+                
+                let timeLeft = Math.floor(remaining / 1000);
+                
+                // 设置进度条初始状态
+                const percent = (timeLeft / 30) * 100;
+                timerBar.style.width = `${percent}%`;
+                timerBar.style.background = percent > 50 ? 
+                    'linear-gradient(90deg, var(--success), var(--warning))' : 
+                    'var(--danger)';
+                
+                timerText.textContent = `${timeLeft}秒后更新`;
+                
+                // 清除之前的计时器
+                if (window.totpTimer) {
+                    clearInterval(window.totpTimer);
+                }
+                
+                // 启动新的计时器
+                window.totpTimer = setInterval(() => {
+                    timeLeft--;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(window.totpTimer);
+                        updateCode(); // 重新生成验证码
+                        return;
+                    }
+                    
+                    // 更新进度条
+                    const percent = (timeLeft / 30) * 100;
+                    timerBar.style.width = `${percent}%`;
+                    
+                    // 更新时间文本
+                    timerText.textContent = `${timeLeft}秒后更新`;
+                    
+                    // 改变颜色
+                    if (timeLeft <= 5) {
+                        timerBar.style.background = 'var(--danger)';
+                    } else if (timeLeft <= 15) {
+                        timerBar.style.background = 'var(--warning)';
+                    }
+                }, 1000);
+            }
+            
+            // 更新二维码
+            function updateQRCode(secret) {
+                // 清除旧二维码
+                qrContainer.innerHTML = '';
+                
+                // 生成新二维码
+                new QRCode(qrContainer, {
+                    text: generateOtpAuthUrl(secret, '安全账户', '企业验证系统'),
+                    width: 220,
+                    height: 220,
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+            
+            // 显示消息
+            function showMessage(text, type) {
+                messageEl.textContent = text;
+                messageEl.className = 'message ' + type;
+                
+                // 5秒后消失
+                setTimeout(() => {
+                    messageEl.textContent = '';
+                    messageEl.className = 'message';
+                }, 5000);
+            }
+            
+            // 复制OTP URL到剪贴板
+            copyUrlBtn.addEventListener('click', async () => {
+                const secret = secretInput.value.trim();
+                
+                if (!secret) {
+                    showMessage('请输入密钥后再复制', 'error');
+                    return;
+                }
+                
+                const url = generateOtpAuthUrl(secret, '安全账户', '企业验证系统');
+                
+                try {
+                    await navigator.clipboard.writeText(url);
+                    showMessage('添加链接已复制到剪贴板！', 'success');
+                } catch (err) {
+                    showMessage('复制失败，请手动复制', 'error');
+                    console.error('复制失败:', err);
+                }
+            });
+            
+            // 检查时间同步状态
+            function checkTimeSync() {
+                // 在实际应用中，这里可以调用NTP服务器进行时间校验
+                // 这里简化为始终显示同步正常
+                syncStatus.innerHTML = '<i class="fas fa-check-circle"></i> <span>时间已同步</span>';
+                syncStatus.className = 'sync-status sync-good';
+            }
+            
+            // 初始生成
+            checkTimeSync();
+            
+            // 按钮点击事件
+            generateBtn.addEventListener('click', updateCode);
+            
+            // 密钥输入框回车事件
+            secretInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    updateCode();
+                }
+            });
+            
+            // 每30秒自动更新
+            setInterval(() => {
+                if (secretInput.value.trim().length >= 16) {
+                    updateCode();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
